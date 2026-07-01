@@ -19,9 +19,6 @@
       "buildResources": "build"
     },
     "afterPack": "build/after-pack.js",
-    "toolsets": {
-      "winCodeSign": "1.1.0"
-    },
     "files": [
       "desktop/**/*",
       "public/**/*",
@@ -90,7 +87,7 @@
   },
   "devDependencies": {
     "electron": "^42.5.2",
-    "electron-builder": "^26.15.3",
+    "electron-builder": "^24.13.3",
     "rcedit": "^5.0.2"
   }
 }
