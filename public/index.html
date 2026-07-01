@@ -18,7 +18,7 @@ try {
 </script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-html,body{font-family:var(--font-sans);background:#000;color:#fff;overflow:hidden;height:100vh;width:100vw;user-select:none;-webkit-font-smoothing:antialiased}
+html,body{font-family:var(--font-sans);background:transparent;color:#fff;overflow:hidden;height:100vh;width:100vw;user-select:none;-webkit-font-smoothing:antialiased}
 body.cursor-hidden,body.cursor-hidden *{cursor:none!important}
 html.desktop-shell-root,html.desktop-shell-root body{background:transparent}
 :root{--font-sans:"Noto Sans SC","PingFang SC","HarmonyOS Sans SC","Alibaba PuHuiTi","Inter",-apple-system,BlinkMacSystemFont,system-ui,sans-serif;--font-mono:"JetBrains Mono","Geist Mono","SF Mono",ui-monospace,monospace;--fc-bg:#08090B;--fc-paper:#0E1014;--fc-ink:#E8ECEF;--fc-ink-2:#D2D7DC;--fc-muted:#8A9099;--fc-hair:#1A1D22;--fc-hair-2:#262A31;--fc-accent:#00F5D4;--fc-accent-hov:#00E0BE;--fc-accent-rgb:0,245,212;--fc-blue:#2442ff;--fc-warm:#f8f4ee;--chill-ink:#030608;--chill-deep:#061116;--chill-cyan:#8fe9ff;--chill-blue:#73a7ff;--chill-mint:#9cffdf;--chill-soft:rgba(214,248,255,.9);--champagne:#f4d28a;--champagne-deep:#9a6f2c;--home-accent:#00f5d4;--home-accent-rgb:0,245,212;--visual-tint:#9db8cf;--source-netease:#d95b67;--source-qq:#00F5D4;--source-local:#9db8cf}
@@ -84,15 +84,16 @@ body.desktop-shell.desktop-fullscreen #top-right{top:24px}
 @media (max-width:720px){#fullscreen-diy-zone{height:48px}#fullscreen-diy-btn{min-width:96px;height:32px}}
 
 /* ---------- 背景 ---------- */
-#custom-bg{position:fixed;inset:0;z-index:0;background:var(--custom-bg-color,#000);overflow:hidden;transition:background .35s ease}
+#custom-bg{position:fixed;inset:0;z-index:0;background:rgba(0,0,0,var(--custom-bg-opacity-value,1));overflow:hidden;transition:background .35s ease}
 #custom-bg-video{position:absolute;inset:-1px;width:calc(100% + 2px);height:calc(100% + 2px);object-fit:cover;opacity:var(--custom-bg-video-opacity,0);filter:none;transform:scale(1.002);transition:opacity .35s ease;pointer-events:none;background:#000}
 #custom-bg::before{content:'';position:absolute;inset:-1px;background-image:var(--custom-bg-image,none);background-size:cover;background-position:center;opacity:var(--custom-bg-image-opacity,0);filter:none;transform:scale(1.002);transition:opacity .35s ease,background-image .35s ease;pointer-events:none}
 #custom-bg::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.06),rgba(0,0,0,.16));opacity:var(--custom-bg-overlay-opacity,0);pointer-events:none}
+#bg-glass-blur-layer{position:fixed;inset:0;z-index:0;pointer-events:none;backdrop-filter:blur(var(--bg-blur-value,0px));-webkit-backdrop-filter:blur(var(--bg-blur-value,0px));transition:backdrop-filter 0.15s ease}
 body.custom-background-override #custom-bg::after{background:linear-gradient(180deg,rgba(0,0,0,.018),rgba(0,0,0,.045))}
 body.custom-background-override.custom-background-flat #custom-bg::after{opacity:0!important}
 body.custom-background-video #custom-bg::before{opacity:0!important}
 #album-bg{position:fixed;inset:0;z-index:0;background-size:cover;background-position:center;filter:blur(120px) brightness(0.18) saturate(1.5);transform:scale(1.4);transition:background-image 1.5s ease,opacity 1.5s ease;opacity:0}
-#album-bg.visible{opacity:1}
+#album-bg.visible{opacity:var(--custom-bg-opacity-value,1)}
 body.custom-background-override #album-bg{opacity:0!important}
 #canvas-container{position:fixed;inset:0;z-index:1;transition:opacity 1450ms cubic-bezier(.16,1,.3,1),transform 1450ms cubic-bezier(.16,1,.3,1)}
 #canvas-container canvas{display:block;width:100%!important;height:100%!important}
@@ -1877,6 +1878,7 @@ html.control-glass-svg-ok #visual-guide-btn:hover{
 </div>
 <div id="custom-bg"><video id="custom-bg-video" muted loop playsinline preload="metadata"></video></div>
 <div id="album-bg"></div>
+<div id="bg-glass-blur-layer"></div>
 <div id="canvas-container"></div>
 <canvas id="idle-guide-canvas" aria-hidden="true"></canvas>
 
@@ -2072,6 +2074,7 @@ html.control-glass-svg-ok #visual-guide-btn:hover{
     <button class="fx-mini-btn ghost" type="button" onclick="clearCustomBackgroundImage()">清除</button>
   </div>
   <div class="fx-slider"><label>背景透明度</label><input id="fx-bgopacity" type="range" min="0" max="1" step="0.01"><output></output></div>
+  <div class="fx-slider"><label>背景模糊</label><input id="fx-bgblur" type="range" min="0" max="60" step="1"><output></output></div>
   <div class="fx-slider"><label>控制台玻璃色差</label><input id="fx-glassaberration" type="range" min="0" max="140" step="1"><output></output></div>
 
   <div class="fx-section-label">主控</div>
@@ -3227,6 +3230,7 @@ var fxDefaults = {
   backgroundColorMode: 'cover',
   backgroundColor: '#000000',
   backgroundOpacity: 1,
+  backgroundBlur: 0,
   controlGlassChromaticOffset: 90,
   backgroundColorCustom: false,
   backgroundImage: '',
@@ -7593,6 +7597,7 @@ function readSavedLyricLayout() {
       backgroundColorMode: savedBgCustom ? 'custom' : 'cover',
       backgroundColor: savedBgColor,
       backgroundOpacity: savedBgOpacity,
+      backgroundBlur: clampRange(raw.backgroundBlur == null ? fxDefaults.backgroundBlur : Number(raw.backgroundBlur), 0, 100),
       controlGlassChromaticOffset: savedGlassOffset,
       backgroundColorCustom: savedBgCustom,
       backgroundImage: normalizeCustomBackgroundImage(raw.backgroundImage),
@@ -7683,6 +7688,7 @@ function saveLyricLayout() {
       backgroundColorMode: fx.backgroundColorMode === 'custom' || fx.backgroundColorCustom ? 'custom' : 'cover',
       backgroundColor: normalizeHexColor(fx.backgroundColor || '#000000', '#000000'),
       backgroundOpacity: clampRange(fx.backgroundOpacity == null ? fxDefaults.backgroundOpacity : Number(fx.backgroundOpacity), 0, 1),
+      backgroundBlur: clampRange(fx.backgroundBlur == null ? fxDefaults.backgroundBlur : Number(fx.backgroundBlur), 0, 100),
       controlGlassChromaticOffset: clampRange(fx.controlGlassChromaticOffset == null ? fxDefaults.controlGlassChromaticOffset : Number(fx.controlGlassChromaticOffset), 0, 140),
       backgroundColorCustom: fx.backgroundColorMode === 'custom' || !!fx.backgroundColorCustom,
       backgroundImage: normalizeCustomBackgroundImage(fx.backgroundImage),
@@ -20758,12 +20764,15 @@ function applyCustomBackground() {
   var image = media && media.type === 'image' ? media.src : '';
   var hasVideo = !!(media && media.type === 'video');
   var opacity = clampRange(fx.backgroundOpacity == null ? 1 : Number(fx.backgroundOpacity), 0, 1);
+  var blurVal = clampRange(fx.backgroundBlur == null ? 0 : Number(fx.backgroundBlur), 0, 100);
   var customColor = fx.backgroundColorMode === 'custom' || !!fx.backgroundColorCustom;
   var override = !!media || customColor || opacity < 1;
   var root = document.documentElement;
   var layer = document.getElementById('custom-bg');
   var video = document.getElementById('custom-bg-video');
   root.style.setProperty('--custom-bg-color', color);
+  root.style.setProperty('--custom-bg-opacity-value', opacity.toFixed(3));
+  root.style.setProperty('--bg-blur-value', blurVal + 'px');
   document.body.classList.toggle('custom-background-override', override);
   document.body.classList.toggle('custom-background-flat', override && !media);
   document.body.classList.toggle('custom-background-video', hasVideo);
@@ -20820,6 +20829,7 @@ function updateCustomBackgroundControls() {
     if (row) row.classList.toggle('bg-cover-mode', !customColor);
   }
   setRange('fx-bgopacity', fx.backgroundOpacity == null ? 1 : fx.backgroundOpacity);
+  setRange('fx-bgblur', fx.backgroundBlur == null ? 0 : fx.backgroundBlur);
   if (imageValue) imageValue.textContent = customBackgroundMediaLabel(fx.backgroundMedia || fx.backgroundImage);
   applyBackgroundMediaHint();
 }
@@ -21446,6 +21456,7 @@ function updateFxInputs() {
   setRange('fx-coverres', fx.coverResolution);
   setRange('fx-lyricglow', fx.lyricGlowStrength);
   setRange('fx-bgopacity', fx.backgroundOpacity == null ? 1 : fx.backgroundOpacity);
+  setRange('fx-bgblur', fx.backgroundBlur == null ? 0 : fx.backgroundBlur);
   setRange('fx-glassaberration', fx.controlGlassChromaticOffset);
   setRange('fx-desktoplyricssize', fx.desktopLyricsSize);
   setRange('fx-desktoplyricsopacity', fx.desktopLyricsOpacity);
@@ -21593,7 +21604,7 @@ function fxPanelTargetForNode(node, current) {
   if (id === 'fx-overlay-fold' || id === 'fx-stage-fold') return 'motion';
   if (id === 'fx-advanced' || node.classList.contains('fx-actions')) return 'advanced';
   if (node.classList.contains('lyric-color-row') || node.classList.contains('cover-color-pop') || node.classList.contains('color-lab-pop') || node.classList.contains('cover-color-loupe')) return 'appearance';
-  if (inputId === 'fx-bgopacity' || inputId === 'fx-glassaberration') return 'appearance';
+  if (inputId === 'fx-bgopacity' || inputId === 'fx-bgblur' || inputId === 'fx-glassaberration') return 'appearance';
   if (inputId === 'fx-lyricglow') return 'lyrics';
   if (/^fx-(intensity|depth|coverres|cineshake)$/.test(inputId)) return 'motion';
   return current || 'presets';
@@ -21773,6 +21784,7 @@ function relabelFxPanelControls() {
   setFxSliderLabel('fx-cineshake', '电影镜头');
   setFxSliderLabel('fx-lyricglow', '溢光强度');
   setFxSliderLabel('fx-bgopacity', '背景透明度');
+  setFxSliderLabel('fx-bgblur', '背景模糊');
   setFxSliderLabel('fx-glassaberration', '玻璃色差');
   setFxSliderLabel('fx-lyricspacing', '字间距');
   setFxSliderLabel('fx-lyriclineheight', '行距');
@@ -22146,7 +22158,7 @@ function bindFxPanel() {
   renderUserFxArchives();
   buildLyricColorControls();
   var ids = [
-    ['fx-intensity','intensity'],['fx-depth','depth'],['fx-coverres','coverResolution'],['fx-cineshake','cinemaShake'],['fx-lyricglow','lyricGlowStrength'],['fx-bgopacity','backgroundOpacity'],['fx-glassaberration','controlGlassChromaticOffset'],
+    ['fx-intensity','intensity'],['fx-depth','depth'],['fx-coverres','coverResolution'],['fx-cineshake','cinemaShake'],['fx-lyricglow','lyricGlowStrength'],['fx-bgopacity','backgroundOpacity'],['fx-bgblur','backgroundBlur'],['fx-glassaberration','controlGlassChromaticOffset'],
     ['fx-desktoplyricssize','desktopLyricsSize'],['fx-desktoplyricsopacity','desktopLyricsOpacity'],['fx-desktoplyricsy','desktopLyricsY'],['fx-wallpaperopacity','wallpaperOpacity'],
     ['fx-shelfsize','shelfSize'],['fx-shelfx','shelfOffsetX'],['fx-shelfy','shelfOffsetY'],['fx-shelfz','shelfOffsetZ'],['fx-shelfangle','shelfAngleY'],['fx-shelfopacity','shelfOpacity'],['fx-shelfbgalpha','shelfBgOpacity'],
     ['fx-lyricspacing','lyricLetterSpacing'],['fx-lyriclineheight','lyricLineHeight'],['fx-lyricweight','lyricWeight'],
@@ -22170,6 +22182,10 @@ function bindFxPanel() {
         fx.backgroundOpacity = clampRange(fx.backgroundOpacity, 0, 1);
         fx.backgroundColorMode = 'custom';
         fx.backgroundColorCustom = true;
+        updateCustomBackgroundControls();
+      }
+      if (pair[1] === 'backgroundBlur') {
+        fx.backgroundBlur = clampRange(fx.backgroundBlur, 0, 100);
         updateCustomBackgroundControls();
       }
       if (pair[1] === 'controlGlassChromaticOffset') {

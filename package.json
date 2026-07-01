@@ -7,7 +7,7 @@
   "main": "desktop/main.js",
   "private": true,
   "scripts": {
-    "start": "electron .",
+    "start": "electron . --user-data-dir=.\\.user-data",
     "build:win": "electron-builder --win nsis",
     "build:win:dir": "electron-builder --win dir"
   },
@@ -89,7 +89,7 @@
     "NeteaseCloudMusicApi": "^4.32.0"
   },
   "devDependencies": {
-    "electron": "^42.4.1",
+    "electron": "^42.5.2",
     "electron-builder": "^26.15.3",
     "rcedit": "^5.0.2"
   }
