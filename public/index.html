@@ -74,9 +74,9 @@ body.desktop-shell #toast{top:60px}
 #fullscreen-diy-btn{min-width:108px;height:34px;opacity:0;pointer-events:none;transform:translateY(-18px) scale(.96);transition:opacity .2s cubic-bezier(.16,1,.3,1),transform .2s cubic-bezier(.16,1,.3,1),background .18s,color .18s,border-color .18s,box-shadow .18s}
 body.visual-guide-active #fullscreen-diy-zone{opacity:0;pointer-events:none!important;transition:opacity .18s cubic-bezier(.16,1,.3,1)}
 body.visual-guide-active #fullscreen-diy-btn{opacity:0!important;pointer-events:none!important;transform:translateY(-18px) scale(.96)!important}
-body.desktop-shell.desktop-fullscreen #desktop-titlebar,html:fullscreen body.desktop-shell #desktop-titlebar{opacity:0;pointer-events:none!important;transition:opacity .22s cubic-bezier(.16,1,.3,1)}
-body.desktop-shell.desktop-fullscreen #desktop-titlebar:hover,html:fullscreen body.desktop-shell #desktop-titlebar:hover{opacity:1;pointer-events:auto!important}
-body.desktop-shell.desktop-fullscreen .desktop-window-controls,html:fullscreen body.desktop-shell .desktop-window-controls{pointer-events:auto}
+body.desktop-shell.desktop-fullscreen #desktop-titlebar,html:fullscreen body.desktop-shell #desktop-titlebar{opacity:1!important;background:transparent!important;pointer-events:auto!important}
+body.desktop-shell.desktop-fullscreen #desktop-titlebar .desktop-drag-region,body.desktop-shell.desktop-fullscreen #desktop-titlebar .desktop-window-controls,html:fullscreen body.desktop-shell #desktop-titlebar .desktop-drag-region,html:fullscreen body.desktop-shell #desktop-titlebar .desktop-window-controls{opacity:0;pointer-events:none!important;transition:opacity .22s cubic-bezier(.16,1,.3,1)}
+body.desktop-shell.desktop-fullscreen #desktop-titlebar:hover .desktop-drag-region,body.desktop-shell.desktop-fullscreen #desktop-titlebar:hover .desktop-window-controls,html:fullscreen body.desktop-shell #desktop-titlebar:hover .desktop-drag-region,html:fullscreen body.desktop-shell #desktop-titlebar:hover .desktop-window-controls{opacity:1;pointer-events:auto!important}
 body.desktop-shell.desktop-fullscreen #fullscreen-diy-zone,html:fullscreen body.desktop-shell #fullscreen-diy-zone{display:flex}
 body.fullscreen-diy-peek #fullscreen-diy-zone,#fullscreen-diy-zone:hover{pointer-events:auto}
 body.fullscreen-diy-peek #fullscreen-diy-btn,#fullscreen-diy-zone:hover #fullscreen-diy-btn{opacity:1;pointer-events:auto;transform:translateY(0) scale(1)}
