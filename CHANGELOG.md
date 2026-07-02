@@ -1,5 +1,15 @@
 # Changelog
 
+> **[变更说明]**
+> 时间: 2026-07-02 09:55:00 | 执行人: 廖远飞 | 标题: 记录重构 v2.0.0-alpha.1 日志
+
+## v2.0.0-alpha.1
+
+- 架构重构初始化：使用 Electron + Vite + Vue 3 + TypeScript 从零重写项目架构，将旧版巨石单文件代码完全解耦并模块化。
+- 编译与运行环境适配：将 Vite 降级至 v6.0.0，将 electron-builder 降级至 v24.13.3，解决在 Node v20.11.0 下的 ES Module require 兼容性报错。
+- 开发服务稳定性修复：在 `electron.vite.config.ts` 中配置 IP 强绑定为 `127.0.0.1:5173`，成功绕过 Windows 环境下 localhost 触发 IPv6 拒绝连接导致的 ERR_CONNECTION_REFUSED 错误。
+- 引入全新依赖体系：增加 `pinia` (全局状态管理)、`NeteaseCloudMusicApi`、`mpg123-decoder`、`gsap` 到依赖列表。
+
 ## v1.1.1
 
 - P0 installer safety fix: installation now defaults to the first available non-C drive from `D:\Mineradio` through `Z:\Mineradio`; it falls back to `C:\Mineradio` only when no D-Z drive exists.
