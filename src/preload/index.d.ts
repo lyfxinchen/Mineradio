@@ -13,6 +13,11 @@ declare global {
       getState: () => Promise<any>
       close: () => Promise<void>
       onStateChange: (callback: (state: any) => void) => () => void
+      openNeteaseMusicLogin: () => Promise<any>
+      clearNeteaseMusicLogin: () => Promise<any>
+      openQQMusicLogin: () => Promise<any>
+      clearQQMusicLogin: () => Promise<any>
+      apiRequest: (url: string, params?: any, data?: any) => Promise<any>
     }
   }
 }

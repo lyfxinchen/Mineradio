@@ -16,6 +16,17 @@ const desktopWindow = {
     return (): void => {
       ipcRenderer.removeListener('desktop-window-state', listener)
     }
+  },
+
+  // Music Login Orchestration
+  openNeteaseMusicLogin: (): Promise<any> => ipcRenderer.invoke('netease-music-open-login'),
+  clearNeteaseMusicLogin: (): Promise<any> => ipcRenderer.invoke('netease-music-clear-login'),
+  openQQMusicLogin: (): Promise<any> => ipcRenderer.invoke('qq-music-open-login'),
+  clearQQMusicLogin: (): Promise<any> => ipcRenderer.invoke('qq-music-clear-login'),
+
+  // Unified Serverless API Broker
+  apiRequest: (url: string, params?: any, data?: any): Promise<any> => {
+    return ipcRenderer.invoke('api-request', { url, params, data })
   }
 }
 

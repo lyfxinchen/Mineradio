@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, protocol, net } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -8,7 +8,23 @@ import {
   getWindowedBounds,
   applyWindowedBounds
 } from './ipc/windowIpc'
+import { registerMusicIpcHandlers } from './ipc/musicIpc'
 
+// Register custom mineradio scheme as privileged
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'mineradio',
+    privileges: {
+      standard: true,
+      secure: true,
+      supportFetchAPI: true,
+      corsEnabled: true,
+      stream: true
+    }
+  }
+])
+
+const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
 let mainWindowStateTimer: NodeJS.Timeout | null = null
 
 function scheduleWindowStateSend(win: BrowserWindow, delay = 80): void {
@@ -18,6 +34,51 @@ function scheduleWindowStateSend(win: BrowserWindow, delay = 80): void {
     mainWindowStateTimer = null
     sendWindowState(win)
   }, delay)
+}
+
+function registerCustomProtocol(): void {
+  protocol.handle('mineradio', async (request) => {
+    try {
+      const urlObj = new URL(request.url)
+      const pathname = urlObj.pathname
+      const targetUrl = urlObj.searchParams.get('url')
+
+      if (!targetUrl) {
+        return new Response('Missing target url', { status: 400 })
+      }
+
+      const isQQ = targetUrl.includes('qq.com') || targetUrl.includes('qpic.cn')
+      const referer = isQQ ? 'https://y.qq.com/' : 'https://music.163.com/'
+
+      if (pathname === '/cover') {
+        const response = await net.fetch(targetUrl, {
+          headers: {
+            'User-Agent': UA,
+            Referer: referer
+          }
+        })
+        return response
+      }
+
+      if (pathname === '/audio') {
+        const headers: Record<string, string> = {
+          'User-Agent': UA,
+          Referer: referer
+        }
+        const range = request.headers.get('range')
+        if (range) {
+          headers['Range'] = range
+        }
+        const response = await net.fetch(targetUrl, { headers })
+        return response
+      }
+
+      return new Response('Not found', { status: 404 })
+    } catch (err: any) {
+      console.error('[Protocol Handler Error]', err)
+      return new Response(err.message, { status: 500 })
+    }
+  })
 }
 
 function createWindow(): void {
@@ -104,6 +165,12 @@ app.whenReady().then(() => {
   // Register window control IPC handlers
   registerWindowIpcHandlers()
 
+  // Register music API IPC handlers
+  registerMusicIpcHandlers()
+
+  // Register custom mineradio:// protocol
+  registerCustomProtocol()
+
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
 
@@ -120,6 +187,3 @@ app.on('window-all-closed', () => {
     app.quit()
   }
 })
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
