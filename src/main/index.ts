@@ -2,23 +2,53 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import {
+  registerWindowIpcHandlers,
+  sendWindowState,
+  getWindowedBounds,
+  applyWindowedBounds
+} from './ipc/windowIpc'
+
+let mainWindowStateTimer: NodeJS.Timeout | null = null
+
+function scheduleWindowStateSend(win: BrowserWindow, delay = 80): void {
+  if (!win || win.isDestroyed()) return
+  if (mainWindowStateTimer) clearTimeout(mainWindowStateTimer)
+  mainWindowStateTimer = setTimeout(() => {
+    mainWindowStateTimer = null
+    sendWindowState(win)
+  }, delay)
+}
 
 function createWindow(): void {
-  // Create the browser window.
+  const initialBounds = getWindowedBounds()
+
+  // Create the browser window (Mineradio frameless & transparent style).
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    ...initialBounds,
+    minWidth: 960,
+    minHeight: 540,
     show: false,
+    frame: false,
+    transparent: true,
+    backgroundColor: '#00000000',
+    hasShadow: true,
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
+      sandbox: false,
+      backgroundThrottling: false
     }
   })
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
+    sendWindowState(mainWindow)
+  })
+
+  mainWindow.webContents.once('did-finish-load', () => {
+    sendWindowState(mainWindow)
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -26,8 +56,33 @@ function createWindow(): void {
     return { action: 'deny' }
   })
 
+  // Window state event listeners
+  mainWindow.on('maximize', () => sendWindowState(mainWindow))
+  mainWindow.on('unmaximize', () => sendWindowState(mainWindow))
+  mainWindow.on('minimize', () => sendWindowState(mainWindow))
+  mainWindow.on('restore', () => sendWindowState(mainWindow))
+  mainWindow.on('show', () => sendWindowState(mainWindow))
+  mainWindow.on('hide', () => sendWindowState(mainWindow))
+  mainWindow.on('focus', () => sendWindowState(mainWindow))
+  mainWindow.on('blur', () => sendWindowState(mainWindow))
+  mainWindow.on('move', () => scheduleWindowStateSend(mainWindow))
+  mainWindow.on('resize', () => scheduleWindowStateSend(mainWindow))
+
+  mainWindow.on('enter-full-screen', () => {
+    sendWindowState(mainWindow)
+  })
+  mainWindow.on('leave-full-screen', () => {
+    setTimeout(() => applyWindowedBounds(mainWindow), 50)
+  })
+
+  mainWindow.on('closed', () => {
+    if (mainWindowStateTimer) {
+      clearTimeout(mainWindowStateTimer)
+      mainWindowStateTimer = null
+    }
+  })
+
   // HMR for renderer base on electron-vite cli.
-  // Load the remote URL for development or the local html file for production.
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
@@ -37,17 +92,17 @@ function createWindow(): void {
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 
   // Default open or close DevTools by F12 in development
-  // and ignore CommandOrControl + R in production.
-  // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
+
+  // Register window control IPC handlers
+  registerWindowIpcHandlers()
 
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
@@ -55,15 +110,11 @@ app.whenReady().then(() => {
   createWindow()
 
   app.on('activate', function () {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
 })
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
+// Quit when all windows are closed, except on macOS.
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()

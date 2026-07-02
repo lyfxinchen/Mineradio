@@ -1,22 +1,37 @@
-import { contextBridge } from 'electron'
-import { electronAPI } from '@electron-toolkit/preload'
+import { contextBridge, ipcRenderer } from 'electron'
 
-// Custom APIs for renderer
-const api = {}
+const desktopWindow = {
+  isDesktop: true,
+  minimize: (): Promise<void> => ipcRenderer.invoke('desktop-window-minimize'),
+  toggleMaximize: (): Promise<void> => ipcRenderer.invoke('desktop-window-toggle-maximize'),
+  toggleFullscreen: (): Promise<void> => ipcRenderer.invoke('desktop-window-toggle-fullscreen'),
+  exitFullscreenWindowed: (): Promise<void> => ipcRenderer.invoke('desktop-window-exit-fullscreen-windowed'),
+  getState: (): Promise<any> => ipcRenderer.invoke('desktop-window-get-state'),
+  close: (): Promise<void> => ipcRenderer.invoke('desktop-window-close'),
 
-// Use `contextBridge` APIs to expose Electron APIs to
-// renderer only if context isolation is enabled, otherwise
-// just add to the DOM global.
+  // Listeners
+  onStateChange: (callback: (state: any) => void): (() => void) => {
+    const listener = (_event: any, state: any): void => callback(state)
+    ipcRenderer.on('desktop-window-state', listener)
+    return (): void => {
+      ipcRenderer.removeListener('desktop-window-state', listener)
+    }
+  }
+}
+
 if (process.contextIsolated) {
   try {
-    contextBridge.exposeInMainWorld('electron', electronAPI)
-    contextBridge.exposeInMainWorld('api', api)
+    contextBridge.exposeInMainWorld('desktopWindow', desktopWindow)
   } catch (error) {
     console.error(error)
   }
 } else {
   // @ts-ignore (define in dts)
-  window.electron = electronAPI
-  // @ts-ignore (define in dts)
-  window.api = api
+  window.desktopWindow = desktopWindow
 }
+
+// Add desktop styles on load
+window.addEventListener('DOMContentLoaded', () => {
+  document.documentElement.classList.add('desktop-shell-root')
+  document.body.classList.add('desktop-shell')
+})
