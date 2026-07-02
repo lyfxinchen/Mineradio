@@ -48,3 +48,6 @@ screenshots/
 .idea/
 .user-data/
 
+
+# ESLint
+.eslintcache
