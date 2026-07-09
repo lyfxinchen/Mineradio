@@ -1,6 +1,6 @@
 # Mineradio (个人定制版)
 
-![Mineradio 暗场启动页](./docs/assets/readme/cinema-beat-smoke.png)
+![Mineradio 暗场启动页](https://cdn.jsdelivr.net/gh/lyfxinchen/Mineradio@main/docs/assets/readme/cinema-beat-smoke.png)
 
 本项目是基于原作者 [XxHuberrr/Mineradio](https://github.com/XxHuberrr/Mineradio) 桌面音乐播放器二次开发与修改的个人定制版。保留了原作者的所有致谢与版权声明，主要增加了亚克力透明背景调节、毛玻璃虚化度控制等定制功能。
 
@@ -30,7 +30,7 @@
 
 如果这个定制版本（支持背景透明与毛玻璃调整）对您有所帮助，欢迎支持作者 **LYFxiaoan** 继续维护和优化此定制版本。
 
-[查看定制版支持页与收款码](./docs/SUPPORT.md)
+![Mineradio 定制版支持渠道](https://cdn.jsdelivr.net/gh/lyfxinchen/Mineradio@main/docs/assets/support/mineradio-author-support-poster.png)
 
 > 💡 本赞助仅用于支持 LYFxiaoan 维护的个人定制版。如果您想支持原作者 XxHuberrr，请前往 [原作者项目主页](https://github.com/XxHuberrr/Mineradio)。
 
